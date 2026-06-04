@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 成长日志 V1.5</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f7f7f5;
+      --panel: #ffffff;
+      --panel-soft: #fafafa;
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --line: #e6e6e6;
+      --line-strong: #d2d2d7;
+      --primary: #111111;
+      --primary-soft: #f0f0f0;
+      --success: #0f7b49;
+      --success-bg: #ecfdf3;
+      --warning: #9a6700;
+      --warning-bg: #fff8db;
+      --info: #1d4ed8;
+      --info-bg: #eef4ff;
+      --danger: #c02222;
+      --danger-bg: #fff1f1;
+      --radius: 8px;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.05);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 30px 0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(30px, 5vw, 46px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .version {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .editor {
+      position: sticky;
+      top: 18px;
+      padding: 20px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 150px;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 7px;
+      color: #333333;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      padding: 10px 11px;
+      color: var(--text);
+      background: #ffffff;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #8c8c8c;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.18s, border-color 0.18s;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      color: #ffffff;
+      background: var(--primary);
+    }
+
+    .primary:hover {
+      background: #333333;
+    }
+
+    .secondary {
+      color: var(--text);
+      background: var(--primary-soft);
+      border: 1px solid var(--line);
+    }
+
+    .secondary:hover {
+      background: #e8e8e8;
+    }
+
+    .danger {
+      color: var(--danger);
+      background: var(--danger-bg);
+      border: 1px solid #ffd1d1;
+    }
+
+    .danger:hover {
+      background: #ffe7e7;
+    }
+
+    .summary-box {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-box.is-visible {
+      display: block;
+    }
+
+    .summary-box textarea {
+      min-height: 210px;
+      background: var(--panel-soft);
+    }
+
+    .summary-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .right {
+      display: grid;
+      gap: 18px;
+    }
+
+    .growth {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      overflow: hidden;
+      background: var(--line);
+    }
+
+    .metric {
+      padding: 18px;
+      background: var(--panel);
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .list {
+      min-height: 520px;
+      overflow: hidden;
+    }
+
+    .list-head {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .list-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: 1fr minmax(170px, 240px);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .data-tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .data-tools .hint {
+      white-space: normal;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .entries {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .entry {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      padding: 15px;
+    }
+
+    .entry-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .date {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tag.project {
+      color: #424245;
+      background: #f2f2f2;
+    }
+
+    .tag.planning {
+      color: var(--warning);
+      background: var(--warning-bg);
+    }
+
+    .tag.developing {
+      color: var(--info);
+      background: var(--info-bg);
+    }
+
+    .tag.completed {
+      color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .mini {
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+
+    .entry-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .block h3 {
+      margin: 0 0 5px;
+      color: #333333;
+      font-size: 13px;
+    }
+
+    .block p {
+      margin: 0;
+      color: #515154;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .empty {
+      padding: 58px 22px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    @media (max-width: 920px) {
+      header,
+      main {
+        display: block;
+      }
+
+      header {
+        margin-bottom: 18px;
+      }
+
+      .version {
+        margin-top: 14px;
+      }
+
+      .editor {
+        position: static;
+        margin-bottom: 18px;
+      }
+
+      .right {
+        gap: 18px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: min(100% - 20px, 1180px);
+        padding: 18px 0;
+      }
+
+      .field-row,
+      .actions,
+      .tools,
+      .data-tools,
+      .growth,
+      .entry-top {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .editor,
+      .entries,
+      .list-head {
+        padding: 14px;
+      }
+
+      .entry-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>AI 成长日志</h1>
+        <p class="subtitle">记录学习、实践、项目进度和可发布的成长总结。</p>
+      </div>
+      <span class="version">V1.5</span>
+    </header>
+
+    <main>
+      <section class="panel editor" aria-label="编辑日志">
+        <div class="panel-title">
+          <h2 id="formTitle">写一条日志</h2>
+          <span class="hint" id="saveHint">自动保存在本地</span>
+        </div>
+
+        <form id="logForm">
+          <input type="hidden" id="editingId">
+
+          <div class="field-row">
+            <div>
+              <label for="date">日期</label>
+              <input type="date" id="date" required>
+            </div>
+            <div>
+              <label for="status">项目状态</label>
+              <select id="status" required>
+                <option value="规划中">规划中</option>
+                <option value="开发中">开发中</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="projectName">项目名称</label>
+          <input type="text" id="projectName" list="projectOptions" placeholder="例如：项目001：AI成长日志系统" required>
+          <datalist id="projectOptions"></datalist>
+
+          <label for="learned">今天学了什么</label>
+          <textarea id="learned" placeholder="例如：学习了提示词结构、AI 工具使用方法..." required></textarea>
+
+          <label for="did">今天做了什么</label>
+          <textarea id="did" placeholder="例如：完成一个小网页、整理学习笔记..." required></textarea>
+
+          <label for="plan">下一步计划</label>
+          <textarea id="plan" placeholder="例如：明天继续练习 JavaScript，并完善项目..." required></textarea>
+
+          <div class="actions">
+            <button class="primary" type="submit">保存日志</button>
+            <button class="secondary" type="button" id="summaryBtn">生成今日总结</button>
+            <button class="secondary" type="button" id="resetBtn">清空表单</button>
+          </div>
+        </form>
+
+        <div class="summary-box" id="summaryBox" aria-live="polite">
+          <label for="summaryOutput">今日总结</label>
+          <textarea id="summaryOutput" readonly></textarea>
+          <div class="summary-actions">
+            <button class="primary" type="button" id="copySummaryBtn">复制总结</button>
+            <span class="hint" id="copyHint"></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="right">
+        <section class="panel growth" aria-label="成长统计">
+          <div class="metric">
+            <strong id="dayCount">0</strong>
+            <span>已坚持天数</span>
+          </div>
+          <div class="metric">
+            <strong id="totalCount">0</strong>
+            <span>已记录日志数</span>
+          </div>
+          <div class="metric">
+            <strong id="completedProjectCount">0</strong>
+            <span>已完成项目数</span>
+          </div>
+        </section>
+
+        <section class="panel list" aria-label="日志列表">
+          <div class="list-head">
+            <div class="list-title">
+              <div>
+                <h2>日志列表</h2>
+                <span class="hint">最新记录排在前面</span>
+              </div>
+              <span class="hint" id="visibleCount">0 条</span>
+            </div>
+            <div class="tools">
+              <input type="search" id="searchInput" placeholder="搜索日志、项目或计划">
+              <select id="projectFilter" aria-label="按项目筛选">
+                <option value="">全部项目</option>
+              </select>
+            </div>
+            <div class="data-tools" aria-label="日志数据导入导出">
+              <button class="secondary mini" type="button" id="exportBtn">导出数据</button>
+              <button class="secondary mini" type="button" id="importBtn">导入数据</button>
+              <input class="file-input" type="file" id="importFile" accept="application/json,.json">
+              <span class="hint" id="dataHint"></span>
+            </div>
+          </div>
+
+          <div class="entries" id="entries"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "ai-growth-log-entries";
+    const DEFAULT_PROJECT = "项目001：AI成长日志系统";
+    const DEFAULT_STATUS = "规划中";
+
+    const form = document.querySelector("#logForm");
+    const editingId = document.querySelector("#editingId");
+    const dateInput = document.querySelector("#date");
+    const statusInput = document.querySelector("#status");
+    const projectNameInput = document.querySelector("#projectName");
+    const learnedInput = document.querySelector("#learned");
+    const didInput = document.querySelector("#did");
+    const planInput = document.querySelector("#plan");
+    const entriesEl = document.querySelector("#entries");
+    const searchInput = document.querySelector("#searchInput");
+    const projectFilter = document.querySelector("#projectFilter");
+    const projectOptions = document.querySelector("#projectOptions");
+    const exportBtn = document.querySelector("#exportBtn");
+    const importBtn = document.querySelector("#importBtn");
+    const importFile = document.querySelector("#importFile");
+    const dataHint = document.querySelector("#dataHint");
+    const resetBtn = document.querySelector("#resetBtn");
+    const summaryBtn = document.querySelector("#summaryBtn");
+    const summaryBox = document.querySelector("#summaryBox");
+    const summaryOutput = document.querySelector("#summaryOutput");
+    const copySummaryBtn = document.querySelector("#copySummaryBtn");
+    const copyHint = document.querySelector("#copyHint");
+    const formTitle = document.querySelector("#formTitle");
+    const saveHint = document.querySelector("#saveHint");
+    const dayCount = document.querySelector("#dayCount");
+    const totalCount = document.querySelector("#totalCount");
+    const completedProjectCount = document.querySelector("#completedProjectCount");
+    const visibleCount = document.querySelector("#visibleCount");
+
+    let logs = normalizeLogs(loadLogs());
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function loadLogs() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function normalizeLogs(items) {
+      if (!Array.isArray(items)) {
+        return [];
+      }
+
+      return items.map((item, index) => ({
+        id: item.id || String(Date.now() + index),
+        createdAt: item.createdAt || Date.now() + index,
+        date: item.date || today(),
+        projectName: item.projectName || DEFAULT_PROJECT,
+        status: item.status || DEFAULT_STATUS,
+        learned: item.learned || "",
+        did: item.did || "",
+        plan: item.plan || ""
+      }));
+    }
+
+    function saveLogs() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function getExportPayload() {
+      return {
+        app: "AI成长日志",
+        version: "1.5",
+        exportedAt: new Date().toISOString(),
+        storageKey: STORAGE_KEY,
+        logs
+      };
+    }
+
+    function exportLogs() {
+      const payload = JSON.stringify(getExportPayload(), null, 2);
+      const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ai-growth-log-${today()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      dataHint.textContent = `已导出 ${logs.length} 条日志`;
+    }
+
+    function parseImportedLogs(fileText) {
+      const data = JSON.parse(fileText);
+      if (Array.isArray(data)) {
+        return data;
+      }
+      if (data && Array.isArray(data.logs)) {
+        return data.logs;
+      }
+      throw new Error("导入文件中没有找到日志数据");
+    }
+
+    function mergeImportedLogs(importedItems) {
+      const importedLogs = normalizeLogs(importedItems);
+      const merged = new Map(logs.map((item) => [item.id, item]));
+
+      importedLogs.forEach((item) => {
+        merged.set(item.id, item);
+      });
+
+      logs = [...merged.values()];
+      saveLogs();
+      refresh();
+      dataHint.textContent = `已导入 ${importedLogs.length} 条日志`;
+    }
+
+    function importLogsFromFile(file) {
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const importedItems = parseImportedLogs(String(reader.result || ""));
+          mergeImportedLogs(importedItems);
+        } catch (error) {
+          dataHint.textContent = "导入失败，请选择正确的 JSON 文件";
+          alert(error.message || "导入失败");
+        } finally {
+          importFile.value = "";
+        }
+      };
+
+      reader.onerror = () => {
+        dataHint.textContent = "导入失败，文件读取出错";
+        importFile.value = "";
+      };
+
+      reader.readAsText(file, "utf-8");
+    }
+
+    function createId() {
+      if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function resetForm() {
+      form.reset();
+      editingId.value = "";
+      dateInput.value = today();
+      statusInput.value = DEFAULT_STATUS;
+      projectNameInput.value = getProjectNames()[0] || DEFAULT_PROJECT;
+      formTitle.textContent = "写一条日志";
+      saveHint.textContent = "自动保存在本地";
+      copyHint.textContent = "";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(value) {
+      const date = new Date(value + "T00:00:00");
+      return date.toLocaleDateString("zh-CN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "short"
+      });
+    }
+
+    function sortLogs(items) {
+      return [...items].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+    }
+
+    function getProjectNames() {
+      const names = logs.map((item) => item.projectName).filter(Boolean);
+      return [...new Set(names)].sort((a, b) => a.localeCompare(b, "zh-CN"));
+    }
+
+    function statusClass(status) {
+      if (status === "已完成") return "completed";
+      if (status === "开发中") return "developing";
+      return "planning";
+    }
+
+    function getDayNumber(dateValue) {
+      const dates = new Set(logs.map((item) => item.date));
+      dates.add(dateValue || today());
+      return [...dates].sort().indexOf(dateValue || today()) + 1;
+    }
+
+    function updateStats() {
+      const uniqueDates = new Set(logs.map((item) => item.date));
+      const completedProjects = new Set(
+        logs
+          .filter((item) => item.status === "已完成" && item.projectName)
+          .map((item) => item.projectName)
+      );
+
+      dayCount.textContent = uniqueDates.size;
+      totalCount.textContent = logs.length;
+      completedProjectCount.textContent = completedProjects.size;
+    }
+
+    function renderProjectControls() {
+      const names = getProjectNames();
+      const selectedProject = projectFilter.value;
+      projectOptions.innerHTML = names.map((name) => `<option value="${escapeHtml(name)}"></option>`).join("");
+      projectFilter.innerHTML = `<option value="">全部项目</option>${names.map((name) => (
+        `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
+      )).join("")}`;
+      projectFilter.value = names.includes(selectedProject) ? selectedProject : "";
+    }
+
+    function renderLogs() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedProject = projectFilter.value;
+      const filtered = sortLogs(logs).filter((item) => {
+        const matchesProject = !selectedProject || item.projectName === selectedProject;
+        const text = `${item.date} ${item.projectName} ${item.status} ${item.learned} ${item.did} ${item.plan}`.toLowerCase();
+        return matchesProject && text.includes(keyword);
+      });
+
+      updateStats();
+      visibleCount.textContent = `${filtered.length} 条`;
+
+      if (!filtered.length) {
+        entriesEl.innerHTML = `
+          <div class="empty">
+            <strong>${logs.length ? "没有匹配的日志" : "还没有日志"}</strong>
+            <span>${logs.length ? "换个关键词或项目试试。" : "从左侧写下今天的 AI 成长记录。"}</span>
+          </div>
+        `;
+        return;
+      }
+
+      entriesEl.innerHTML = filtered.map((item) => `
+        <article class="entry">
+          <div class="entry-top">
+            <div>
+              <div class="date">${formatDate(item.date)}</div>
+              <div class="meta">
+                <span class="tag project">${escapeHtml(item.projectName)}</span>
+                <span class="tag ${statusClass(item.status)}">${escapeHtml(item.status)}</span>
+              </div>
+            </div>
+            <div class="entry-actions">
+              <button class="mini secondary" type="button" data-action="edit" data-id="${item.id}">编辑</button>
+              <button class="mini danger" type="button" data-action="delete" data-id="${item.id}">删除</button>
+            </div>
+          </div>
+          <div class="entry-grid">
+            <div class="block">
+              <h3>今天学了什么</h3>
+              <p>${escapeHtml(item.learned)}</p>
+            </div>
+            <div class="block">
+              <h3>今天做了什么</h3>
+              <p>${escapeHtml(item.did)}</p>
+            </div>
+            <div class="block">
+              <h3>下一步计划</h3>
+              <p>${escapeHtml(item.plan)}</p>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function refresh() {
+      renderProjectControls();
+      renderLogs();
+    }
+
+    function buildSummary() {
+      const learned = learnedInput.value.trim();
+      const did = didInput.value.trim();
+      const plan = planInput.value.trim();
+
+      if (!learned || !did || !plan) {
+        alert("请先填写学习、完成事项和下一步计划。");
+        return;
+      }
+
+      const summary = `AI成长计划 Day${getDayNumber(dateInput.value)}
+
+今天学习了：
+${learned}
+
+今天完成了：
+${did}
+
+下一步计划：
+${plan}`;
+
+      summaryOutput.value = summary;
+      summaryBox.classList.add("is-visible");
+      copyHint.textContent = "";
+    }
+
+    async function copySummary() {
+      if (!summaryOutput.value.trim()) {
+        buildSummary();
+      }
+
+      if (!summaryOutput.value.trim()) {
+        return;
+      }
+
+      summaryOutput.select();
+
+      try {
+        await navigator.clipboard.writeText(summaryOutput.value);
+        copyHint.textContent = "已复制";
+      } catch {
+        document.execCommand("copy");
+        copyHint.textContent = "已复制";
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const data = {
+        date: dateInput.value,
+        projectName: projectNameInput.value.trim(),
+        status: statusInput.value,
+        learned: learnedInput.value.trim(),
+        did: didInput.value.trim(),
+        plan: planInput.value.trim()
+      };
+
+      if (!data.projectName || !data.learned || !data.did || !data.plan) {
+        return;
+      }
+
+      if (editingId.value) {
+        logs = logs.map((item) => item.id === editingId.value ? { ...item, ...data } : item);
+      } else {
+        logs.push({
+          id: createId(),
+          createdAt: Date.now(),
+          ...data
+        });
+      }
+
+      saveLogs();
+      resetForm();
+      refresh();
+    });
+
+    entriesEl.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const log = logs.find((item) => item.id === button.dataset.id);
+      if (!log) return;
+
+      if (button.dataset.action === "edit") {
+        editingId.value = log.id;
+        dateInput.value = log.date;
+        projectNameInput.value = log.projectName;
+        statusInput.value = log.status;
+        learnedInput.value = log.learned;
+        didInput.value = log.did;
+        planInput.value = log.plan;
+        formTitle.textContent = "编辑日志";
+        saveHint.textContent = "修改后点击保存";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      if (button.dataset.action === "delete") {
+        const ok = confirm(`确定删除 ${formatDate(log.date)} 的日志吗？`);
+        if (!ok) return;
+        logs = logs.filter((item) => item.id !== log.id);
+        saveLogs();
+        refresh();
+        if (editingId.value === log.id) {
+          resetForm();
+        }
+      }
+    });
+
+    searchInput.addEventListener("input", renderLogs);
+    projectFilter.addEventListener("change", renderLogs);
+    exportBtn.addEventListener("click", exportLogs);
+    importBtn.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", () => importLogsFromFile(importFile.files[0]));
+    resetBtn.addEventListener("click", resetForm);
+    summaryBtn.addEventListener("click", buildSummary);
+    copySummaryBtn.addEventListener("click", copySummary);
+
+    saveLogs();
+    refresh();
+    resetForm();
+    refresh();
+  </script>
+</body>
+</html>
